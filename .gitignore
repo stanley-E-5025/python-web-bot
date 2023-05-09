@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Miscellaneous
+.DS_Store
+*.log
+*.bak
+*.swp
+*.tmp
+*.pid
+*.lock
+*.diff
+*.patch
+*.csv
+*.json
+*.ini
+*.pyc
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+*.env
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# TextMate
+*.tmproj
+
+
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Bower
+bower_components/
+
+
