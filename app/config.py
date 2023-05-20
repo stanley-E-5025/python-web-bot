@@ -18,12 +18,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 STEPS = {
-    "title": "Recording 5/8/2023 at 5:12:58 PM",
+    "title": "Recording 5/9/2023 at 10:14:35 AM",
     "steps": [
         {
             "type": "setViewport",
             "width": 1440,
-            "height": 764,
+            "height": 821,
             "deviceScaleFactor": 1,
             "isMobile": False,
             "hasTouch": False,
@@ -44,12 +44,26 @@ STEPS = {
             "type": "click",
             "target": "main",
             "selectors": [
-                ["#tabZoneId1 div.tab-clip"],
-                ['xpath///*[@id="tabZoneId1"]/div/div/div/div[1]'],
-                ["pierce/#tabZoneId1 div.tab-clip"],
+                ["div.QFLowerBound > div"],
+                [
+                    'xpath///*[@id="tableau_base_widget_LegacyQuantitativeDateQuickFilter_0"]/div/div[2]/div[1]/div'
+                ],
+                ["pierce/div.QFLowerBound > div"],
             ],
-            "offsetY": 249,
-            "offsetX": 734,
+            "offsetY": 6,
+            "offsetX": 18,
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                ["body > span span > span"],
+                ["xpath//html/body/span/div[3]/span/span"],
+                ["pierce/body > span span > span"],
+                ["text/5/9/2023"],
+            ],
+            "offsetY": 2.5,
+            "offsetX": 22.34375,
         },
         {
             "type": "click",
@@ -61,20 +75,30 @@ STEPS = {
                 ],
                 ["pierce/div.QFLowerBound > div"],
             ],
-            "offsetY": 5,
-            "offsetX": 33,
+            "offsetY": 1,
+            "offsetX": 26,
         },
         {
             "type": "click",
             "target": "main",
             "selectors": [
-                ["body > span span > span"],
-                ["xpath//html/body/span/div[3]/span/span"],
-                ["pierce/body > span span > span"],
-                ["text/5/8/2023"],
+                ["tr:nth-of-type(1) > td:nth-of-type(2)"],
+                ["xpath//html/body/span/div[2]/table/tbody/tr[1]/td[2]"],
+                ["pierce/tr:nth-of-type(1) > td:nth-of-type(2)"],
             ],
-            "offsetY": 4.5,
-            "offsetX": 30.28125,
+            "offsetY": 7.5,
+            "offsetX": 13,
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                ["div.tab-textRegion-boundary div:nth-of-type(2)"],
+                ['xpath///*[@id="tabZoneId20"]/div/div/div/div[1]/div/span/div[2]'],
+                ["pierce/div.tab-textRegion-boundary div:nth-of-type(2)"],
+            ],
+            "offsetY": 15,
+            "offsetX": 93,
         },
         {
             "type": "click",
@@ -86,8 +110,8 @@ STEPS = {
                 ],
                 ["pierce/#tabZoneId6 div.tabComboBoxNameContainer"],
             ],
-            "offsetY": 8,
-            "offsetX": 141,
+            "offsetY": 10,
+            "offsetX": 74,
         },
         {
             "type": "click",
@@ -103,7 +127,7 @@ STEPS = {
                     "pierce/#FI_federated\\.00w687c1maup7s1dd4wh40d7d2b6\\,none\\:Address\\:nk7677579796986060413_6318501153575507500_\\(All\\) input"
                 ],
             ],
-            "offsetY": 7,
+            "offsetY": 2,
             "offsetX": 8,
         },
         {
@@ -118,18 +142,7 @@ STEPS = {
                 ["text/Apply"],
             ],
             "offsetY": 4,
-            "offsetX": 45,
-        },
-        {
-            "type": "click",
-            "target": "main",
-            "selectors": [
-                ["#\\32 9035048760"],
-                ['xpath///*[@id="29035048760"]'],
-                ["pierce/#\\32 9035048760"],
-            ],
-            "offsetY": 28,
-            "offsetX": 176,
+            "offsetX": 49,
         },
         {
             "type": "click",
@@ -140,7 +153,7 @@ STEPS = {
                 ["pierce/div.tab-toolbar"],
             ],
             "offsetY": 15,
-            "offsetX": 953,
+            "offsetX": 653,
         },
         {
             "type": "click",
@@ -150,8 +163,8 @@ STEPS = {
                 ['xpath///*[@id="download-ToolbarButton"]/span[2]'],
                 ["pierce/#download-ToolbarButton > span.tabToolbarButtonText"],
             ],
-            "offsetY": 1.25,
-            "offsetX": 3.9375,
+            "offsetY": 3.25,
+            "offsetX": 27.9375,
         },
         {
             "type": "click",
@@ -164,25 +177,8 @@ STEPS = {
                 ],
                 ["pierce/button:nth-of-type(3)"],
             ],
-            "offsetY": 11,
-            "offsetX": 119,
-        },
-        {
-            "type": "click",
-            "target": "main",
-            "selectors": [
-                [
-                    "div.f1lp596a > div > div > div:nth-of-type(1) > div > div > div > div"
-                ],
-                [
-                    'xpath///*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[1]/div/div/div/div'
-                ],
-                [
-                    "pierce/div.f1lp596a > div > div > div:nth-of-type(1) > div > div > div > div"
-                ],
-            ],
-            "offsetY": 26.5,
-            "offsetX": 19.5,
+            "offsetY": 5.5,
+            "offsetX": 122,
         },
         {
             "type": "click",
@@ -198,8 +194,8 @@ STEPS = {
                     "pierce/div.f1lp596a > div > div > div:nth-of-type(2) > div > div > div > div"
                 ],
             ],
-            "offsetY": 23.5,
-            "offsetX": 15.5,
+            "offsetY": 21,
+            "offsetX": 4.5,
         },
         {
             "type": "click",
@@ -211,8 +207,8 @@ STEPS = {
                 ],
                 ["pierce/label:nth-of-type(2)"],
             ],
-            "offsetY": 8,
-            "offsetX": 4.5703125,
+            "offsetY": 5.5,
+            "offsetX": 7.5703125,
         },
         {
             "type": "click",
@@ -229,8 +225,8 @@ STEPS = {
                     "pierce/#export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id button"
                 ],
             ],
-            "offsetY": 10,
-            "offsetX": 37.40625,
+            "offsetY": 8.5,
+            "offsetX": 61.40625,
         },
     ],
 }

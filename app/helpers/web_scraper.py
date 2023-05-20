@@ -1,4 +1,4 @@
-import sys
+import sys, time, logging
 from pathlib import Path
 
 tenant_directory, root_dir = (
@@ -8,67 +8,68 @@ tenant_directory, root_dir = (
 sys.path.insert(0, str(root_dir))
 sys.path.append(str(tenant_directory))
 
-import requests
-from bs4 import BeautifulSoup
-import csv
-import pandas as pd
-import numpy as np
-import re
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service
+
+
+loger = logging.getLogger()
 
 
 class ScraperClient:
-    def __init__(self):
-        self.session = requests.Session()
-        self.driver = webdriver.Chrome(executable_path="path/to/chromedriver")
+    def __init__(self, url: str, steps: list):
+        self.url = url
+        self.steps = steps
 
-    def fetch_page_content(self, url):
+    def extract_blob(self):
         chrome_options = Options()
-        chrome_options.headless = True
-
-        driver = webdriver.Chrome(
-            executable_path="/path/to/chromedriver", options=chrome_options
+        service = Service(executable_path="/path/to/chromedriver")
+        
+        chrome_options.add_experimental_option(
+            "prefs",
+            {"download.default_directory": f"{root_dir}/downloads"},
         )
+        window_size = self.steps["steps"][0]["width"], self.steps["steps"][0]["height"]
 
-        driver.get(url)
-        page_content = driver.page_source
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.get(self.url)
+        driver.set_window_size(window_size[0], window_size[1])
+
+        time.sleep(10)
+
+        for step in self.steps["steps"]:
+            if step["type"] == "click":
+                selectors = step["selectors"]
+                found_element = False
+                for selector_group in selectors:
+                    try:
+                        for selector in selector_group:
+                            element = WebDriverWait(driver, 10).until(
+                                EC.presence_of_element_located(
+                                    (By.CSS_SELECTOR, selector)
+                                )
+                            )
+
+                            found_element = True
+                            break
+                    except:
+                        loger.info(f"Could not find element {selector}")
+
+                if found_element:
+                    driver.execute_script("arguments[0].scrollIntoView();", element)
+                    actions = ActionChains(driver)
+                    actions.move_to_element(element)
+
+                    actions.click()
+                    actions.perform()
+                    time.sleep(15)
+
+                else:
+                    loger.info(f"Could not find element {selector}")
 
         driver.quit()
-
-        return page_content
-
-    def parse_html(self, html_content):
-        soup = BeautifulSoup(html_content, "html.parser")
-        return soup
-
-    def extract_data(self, soup, css_selector):
-        elements = soup.select(css_selector)
-        return elements
-
-    def download_file(self, url, file_name):
-        response = self.session.get(url)
-        with open(file_name, "wb") as f:
-            f.write(response.content)
-
-    def interact_with_page(
-        self, url, element_css_selector, interaction_type, input_value=None
-    ):
-        self.driver.get(url)
-        element = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, element_css_selector))
-        )
-
-        if interaction_type == "click":
-            element.click()
-        elif interaction_type == "input":
-            element.send_keys(input_value)
-        elif interaction_type == "select":
-            select = webdriver.support.ui.Select(element)
-            select.select_by_visible_text(input_value)
-
-    def quit_driver(self):
-        self.driver.quit()
