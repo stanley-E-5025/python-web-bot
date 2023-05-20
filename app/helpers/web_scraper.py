@@ -1,5 +1,7 @@
-import sys, time, logging
+import sys, logging, time
 from pathlib import Path
+import platform
+
 
 tenant_directory, root_dir = (
     Path(__file__).resolve().parent.parent,
@@ -16,9 +18,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
+import uuid
 
-
-loger = logging.getLogger()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
 class ScraperClient:
@@ -26,50 +29,58 @@ class ScraperClient:
         self.url = url
         self.steps = steps
 
+    def wait_for_element(self, driver, selector, by, retries=3):
+        attempt = 0
+
+
+        while attempt < retries:
+            try:
+                element = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((by, selector))
+                )
+                actions = ActionChains(driver)
+                actions.pause(1)
+                actions.move_to_element(element)
+                actions.click()
+                actions.perform()
+                return
+            except:
+                attempt += 1
+                time.sleep(3)
+                logger.info(
+                    f"Attempt {attempt} to find element {selector} failed. Retrying..."
+                )
+        logger.info(f"Failed to find element {selector} after {retries} attempts.")
+
     def extract_blob(self):
         chrome_options = Options()
-        service = Service(executable_path="/path/to/chromedriver")
-        
+        executable_path = ""
+
+        if platform.system() == "Windows":
+            executable_path = f"{root_dir}/chromedriver_win32/chromedriver.exe"
+        elif platform.system() == "Darwin":
+            executable_path = f"{root_dir}chromedriver_mac64/chromedriver"
+        else:
+            executable_path = f"{root_dir}chromedriver_linux64/chromedriver"
+
+        service = Service(executable_path=executable_path)
+       
         chrome_options.add_experimental_option(
             "prefs",
             {"download.default_directory": f"{root_dir}/downloads"},
         )
-        window_size = self.steps["steps"][0]["width"], self.steps["steps"][0]["height"]
-
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get(self.url)
-        driver.set_window_size(window_size[0], window_size[1])
-
-        time.sleep(10)
+        driver.set_window_size(
+            self.steps["steps"][0]["width"], self.steps["steps"][0]["height"]
+        )
 
         for step in self.steps["steps"]:
             if step["type"] == "click":
-                selectors = step["selectors"]
-                found_element = False
-                for selector_group in selectors:
-                    try:
-                        for selector in selector_group:
-                            element = WebDriverWait(driver, 10).until(
-                                EC.presence_of_element_located(
-                                    (By.CSS_SELECTOR, selector)
-                                )
-                            )
-
-                            found_element = True
-                            break
-                    except:
-                        loger.info(f"Could not find element {selector}")
-
-                if found_element:
-                    driver.execute_script("arguments[0].scrollIntoView();", element)
-                    actions = ActionChains(driver)
-                    actions.move_to_element(element)
-
-                    actions.click()
-                    actions.perform()
-                    time.sleep(15)
-
-                else:
-                    loger.info(f"Could not find element {selector}")
+                for selector_group in step["selectors"]:
+                    for selector in selector_group:
+                        if "aria" not in selector and "text" not in selector and "xpath" not in selector:
+                            by = By.CSS_SELECTOR
+                            self.wait_for_element(driver, selector, by=by)
 
         driver.quit()

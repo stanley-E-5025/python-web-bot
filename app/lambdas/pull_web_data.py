@@ -10,9 +10,9 @@ sys.path.append(str(tenant_directory))
 
 from app.helpers.web_scraper import ScraperClient
 from config import STEPS
+
 logger = logging.getLogger()
-
-
+logger.setLevel(logging.INFO)
 class ExecutePull:
     def __init__(
         self,
@@ -34,4 +34,5 @@ if __name__ == "__main__":
     execute_pull = ExecutePull(
         scraper_client=scraper_client,
     )
-    execute_pull.execute()
+    execute_pull.execute() # Bentchmark: 02:12.40
+    
