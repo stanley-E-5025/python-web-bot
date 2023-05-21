@@ -20,15 +20,28 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
 from datetime import datetime
 from selenium_stealth import stealth
+from selenium.webdriver.common.keys import Keys
+from faker import Faker
+
+
+fake = Faker()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class ScraperClient:
-    def __init__(self, url: str, steps: list):
+    def __init__(self, url: str, steps: list, case:str, data:str):
         self.url = url
         self.steps = steps
+        self.case = case
+        self.data = data
+
+    def handle_key_event(self, driver, key: str, action: str):
+        if action == "keyDown":
+            ActionChains(driver).key_down(getattr(Keys, key.upper())).perform()
+        elif action == "keyUp":
+            ActionChains(driver).key_up(getattr(Keys, key.upper())).perform()
 
     def wait_for_element(self, driver, selector, by, retries=3):
         attempt = 0
@@ -58,15 +71,11 @@ class ScraperClient:
         executable_path = ""
 
         user_agents = [
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
-            "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; AS; rv:11.0) like Gecko",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
+            f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, {fake.name()} ) Chrome/113.0.0.0 Safari/537.36",
+            f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/58.0.3029.110 Safari/537.3",
+            f"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
+            f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/41.0.2227.1 Safari/537.36",
+            f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/60.0.3112.113 Safari/537.36",
         ]
 
         user_agent = random.choice(user_agents)
@@ -83,12 +92,10 @@ class ScraperClient:
 
         today = datetime.today().strftime("%Y-%m-%d")
         download_dir = f"{root_dir}/downloads/{today}"
-        os.makedirs(
-            download_dir, exist_ok=True
-        ) 
+        os.makedirs(download_dir, exist_ok=True)
         chrome_options.add_experimental_option(
             "prefs",
-            {"download.default_directory": download_dir}, 
+            {"download.default_directory": download_dir},
         )
 
         driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -129,12 +136,19 @@ class ScraperClient:
                             and "text" not in selector
                             and "xpath" not in selector
                         ):
+
                             by = By.CSS_SELECTOR
                             element = self.wait_for_element(driver, selector, by=by)
                             if element:
                                 element.clear()
-                                element.send_keys(step["value"])
-
+                                element.send_keys(self.data)
+                            
+            elif step["type"] in ["keyDown", "keyUp"]:
+                self.handle_key_event(driver, step["key"], step["type"])
 
         driver.quit()
-        return download_dir
+
+        if self.case == "blob":
+            return download_dir
+        else:
+            return None
