@@ -230,3 +230,87 @@ STEPS = {
         },
     ],
 }
+
+
+STEPS2 = {
+    "title": "Recording 5/20/2023 at 4:36:37 PM",
+    "steps": [
+        {
+            "type": "setViewport",
+            "width": 1440,
+            "height": 821,
+            "deviceScaleFactor": 1,
+            "isMobile": False,
+            "hasTouch": False,
+            "isLandscape": False
+        },
+        {
+            "type": "navigate",
+            "url": "https://www.zillow.com/",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "https://www.zillow.com/",
+                    "title": "Zillow: Real Estate, Apartments, Mortgages & Home Values"
+                }
+            ]
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Search: Suggestions appear below"
+                ],
+                [
+                    "#search-box-input"
+                ],
+                [
+                    "xpath///*[@id=\"search-box-input\"]"
+                ],
+                [
+                    "pierce/#search-box-input"
+                ]
+            ],
+            "offsetY": 25,
+            "offsetX": 469
+        },
+        {
+            "type": "change",
+            "value": "309 3RD AVE SE",
+            "selectors": [
+                [
+                    "aria/Search: Suggestions appear below"
+                ],
+                [
+                    "#search-box-input"
+                ],
+                [
+                    "xpath///*[@id=\"search-box-input\"]"
+                ],
+                [
+                    "pierce/#search-box-input"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "Enter",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "https://www.zillow.com/homes/309-3RD-AVE-SE_rb/41284735_zpid/",
+                    "title": "309 3rd Ave SE, Winchester, TN 37398 | Zillow"
+                }
+            ]
+        },
+        {
+            "type": "keyUp",
+            "key": "Enter",
+            "target": "main"
+        }
+    ]
+}
+
