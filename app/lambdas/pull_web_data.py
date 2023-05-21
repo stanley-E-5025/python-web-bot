@@ -23,7 +23,7 @@ class ExecutePull:
         self.scraper_client = scraper_client
 
     def execute(self) -> str:
-        directory = self.scraper_client.extract_blob()
+        directory = self.scraper_client.extract_blob()["download_dir"]
         reports = [elt for elt in os.listdir(directory) if elt.endswith(".csv")]
         property_violations = f"{directory}/{reports[0]}"
 

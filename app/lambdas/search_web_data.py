@@ -19,6 +19,7 @@ logger.setLevel(logging.INFO)
 class ExecuteSearch:
     def __init__(self, scraper_client: ScraperClient):
         self.scraper_client = scraper_client
-    def execute(self) -> None:
-        self.scraper_client.extract_blob()
+    def execute(self) -> dict:
+        data = self.scraper_client.extract_blob()
+        return data
 

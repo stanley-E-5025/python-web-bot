@@ -21,21 +21,20 @@ from selenium.webdriver.chrome.service import Service
 from datetime import datetime
 from selenium_stealth import stealth
 from selenium.webdriver.common.keys import Keys
-from faker import Faker
+from utils import generate_user_agent
 
-
-fake = Faker()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class ScraperClient:
-    def __init__(self, url: str, steps: list, case:str, data:str):
+    def __init__(self, url: str, steps: list, case: str, data: str):
         self.url = url
         self.steps = steps
         self.case = case
         self.data = data
+        self.bot_detected = False
 
     def handle_key_event(self, driver, key: str, action: str):
         if action == "keyDown":
@@ -66,19 +65,10 @@ class ScraperClient:
         logger.info(f"Failed to find element {selector} after {retries} attempts.")
         return None
 
-    def extract_blob(self) -> str:
+    def extract_blob(self) -> dict:
         chrome_options = Options()
         executable_path = ""
-
-        user_agents = [
-            f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, {fake.name()} ) Chrome/113.0.0.0 Safari/537.36",
-            f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/58.0.3029.110 Safari/537.3",
-            f"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
-            f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/41.0.2227.1 Safari/537.36",
-            f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, {fake.name()}) Chrome/60.0.3112.113 Safari/537.36",
-        ]
-
-        user_agent = random.choice(user_agents)
+        user_agent = generate_user_agent()
         chrome_options.add_argument(f"user-agent={user_agent}")
 
         if platform.system() == "Windows":
@@ -117,6 +107,48 @@ class ScraperClient:
             EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
         )
 
+        current_url = driver.current_url
+
+        while "captchaPerimeter" in current_url:
+            self.bot_detected = True
+            for selector_group in [
+                ["#px-captcha"],
+            ]:
+                for selector in selector_group:
+                    if "aria" in selector or "text" in selector or "xpath" in selector:
+                        by = By.XPATH
+                    else:
+                        by = By.CSS_SELECTOR
+
+                    element = self.wait_for_element(driver, selector, by=by)
+                    if element:
+                        break
+                if element:
+                    break
+
+            # Hold a click on the captcha element
+            if element:
+                actions = ActionChains(driver)
+                actions.move_to_element_with_offset(element, 137, 24)
+                actions.click_and_hold().perform()
+
+                # Wait until the URL changes
+                WebDriverWait(driver, 60).until(EC.url_changes(current_url))
+                time.sleep(3)
+
+                actions.release().perform()
+
+            current_url = driver.current_url
+
+        if "captchaPerimeter" in current_url:
+            return {
+                "bot_detected": self.bot_detected,
+                "case": self.case,
+                "data": self.data,
+                "url": self.url,
+                "blob": None,
+            }
+
         for step in self.steps["steps"]:
             if step["type"] == "click":
                 for selector_group in step["selectors"]:
@@ -136,19 +168,20 @@ class ScraperClient:
                             and "text" not in selector
                             and "xpath" not in selector
                         ):
-
                             by = By.CSS_SELECTOR
                             element = self.wait_for_element(driver, selector, by=by)
                             if element:
                                 element.clear()
                                 element.send_keys(self.data)
-                            
+
             elif step["type"] in ["keyDown", "keyUp"]:
                 self.handle_key_event(driver, step["key"], step["type"])
 
         driver.quit()
 
-        if self.case == "blob":
-            return download_dir
-        else:
-            return None
+        return {
+            "bot_detected": self.bot_detected,
+            "download_dir": download_dir,
+            "data": self.data,
+            "case": self.case,
+        }
