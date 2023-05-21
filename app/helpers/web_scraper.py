@@ -43,7 +43,7 @@ class ScraperClient:
                 actions.move_to_element(element)
                 actions.click()
                 actions.perform()
-                return
+                return element
             except:
                 attempt += 1
                 time.sleep(3)
@@ -51,6 +51,7 @@ class ScraperClient:
                     f"Attempt {attempt} to find element {selector} failed. Retrying..."
                 )
         logger.info(f"Failed to find element {selector} after {retries} attempts.")
+        return None
 
     def extract_blob(self) -> str:
         chrome_options = Options()
@@ -109,7 +110,6 @@ class ScraperClient:
             EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
         )
 
-
         for step in self.steps["steps"]:
             if step["type"] == "click":
                 for selector_group in step["selectors"]:
@@ -121,6 +121,20 @@ class ScraperClient:
                         ):
                             by = By.CSS_SELECTOR
                             self.wait_for_element(driver, selector, by=by)
+            elif step["type"] == "change":
+                for selector_group in step["selectors"]:
+                    for selector in selector_group:
+                        if (
+                            "aria" not in selector
+                            and "text" not in selector
+                            and "xpath" not in selector
+                        ):
+                            by = By.CSS_SELECTOR
+                            element = self.wait_for_element(driver, selector, by=by)
+                            if element:
+                                element.clear()
+                                element.send_keys(step["value"])
+
 
         driver.quit()
         return download_dir
