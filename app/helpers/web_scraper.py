@@ -1,4 +1,4 @@
-import sys, logging, time
+import sys, logging, time, os
 from pathlib import Path
 import platform
 
@@ -18,7 +18,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
-import uuid
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -31,7 +31,6 @@ class ScraperClient:
 
     def wait_for_element(self, driver, selector, by, retries=3):
         attempt = 0
-
 
         while attempt < retries:
             try:
@@ -52,7 +51,7 @@ class ScraperClient:
                 )
         logger.info(f"Failed to find element {selector} after {retries} attempts.")
 
-    def extract_blob(self):
+    def extract_blob(self) -> str:
         chrome_options = Options()
         executable_path = ""
 
@@ -64,11 +63,17 @@ class ScraperClient:
             executable_path = f"{root_dir}chromedriver_linux64/chromedriver"
 
         service = Service(executable_path=executable_path)
-       
+
+        today = datetime.today().strftime("%Y-%m-%d")
+        download_dir = f"{root_dir}/downloads/{today}"
+        os.makedirs(
+            download_dir, exist_ok=True
+        )  # Create the directory if it doesn't exist
         chrome_options.add_experimental_option(
             "prefs",
-            {"download.default_directory": f"{root_dir}/downloads"},
+            {"download.default_directory": download_dir},  # Use the new directory
         )
+
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get(self.url)
         driver.set_window_size(
@@ -79,8 +84,13 @@ class ScraperClient:
             if step["type"] == "click":
                 for selector_group in step["selectors"]:
                     for selector in selector_group:
-                        if "aria" not in selector and "text" not in selector and "xpath" not in selector:
+                        if (
+                            "aria" not in selector
+                            and "text" not in selector
+                            and "xpath" not in selector
+                        ):
                             by = By.CSS_SELECTOR
                             self.wait_for_element(driver, selector, by=by)
 
         driver.quit()
+        return download_dir
