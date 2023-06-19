@@ -233,7 +233,7 @@ STEPS = {
 
 
 STEPS2 = {
-    "title": "Recording 5/20/2023 at 4:36:37 PM",
+    "title": "Recording 5/28/2023 at 4:59:31 PM",
     "steps": [
         {
             "type": "setViewport",
@@ -242,7 +242,7 @@ STEPS2 = {
             "deviceScaleFactor": 1,
             "isMobile": False,
             "hasTouch": False,
-            "isLandscape": False
+            "isLandscape": False,
         },
         {
             "type": "navigate",
@@ -251,66 +251,86 @@ STEPS2 = {
                 {
                     "type": "navigation",
                     "url": "https://www.zillow.com/",
-                    "title": "Zillow: Real Estate, Apartments, Mortgages & Home Values"
+                    "title": "Zillow: Real Estate, Apartments, Mortgages & Home Values",
                 }
-            ]
+            ],
         },
         {
             "type": "click",
             "target": "main",
             "selectors": [
-                [
-                    "aria/Search: Suggestions appear below"
-                ],
-                [
-                    "#search-box-input"
-                ],
-                [
-                    "xpath///*[@id=\"search-box-input\"]"
-                ],
-                [
-                    "pierce/#search-box-input"
-                ]
+                ["aria/Search: Suggestions appear below"],
+                ["#search-box-input"],
+                ["pierce/#search-box-input"],
             ],
-            "offsetY": 25,
-            "offsetX": 469
+            "offsetY": 36,
+            "offsetX": 392,
         },
         {
             "type": "change",
-            "value": "309 3RD AVE SE",
+            "value": "17 24TH ST E",
             "selectors": [
-                [
-                    "aria/Search: Suggestions appear below"
-                ],
-                [
-                    "#search-box-input"
-                ],
-                [
-                    "xpath///*[@id=\"search-box-input\"]"
-                ],
-                [
-                    "pierce/#search-box-input"
-                ]
+                ["aria/Search: Suggestions appear below"],
+                ["#search-box-input"],
+                ["pierce/#search-box-input"],
             ],
-            "target": "main"
+            "target": "main",
         },
         {
-            "type": "keyDown",
+            "type": "click",
             "target": "main",
-            "key": "Enter",
+            "selectors": [
+                ["#react-autowhatever-1--item-2 span"],
+                ["pierce/#react-autowhatever-1--item-2 span"],
+                ["text/305 E 24th St"],
+            ],
+            "offsetY": 14,
+            "offsetX": 261,
             "assertedEvents": [
                 {
                     "type": "navigation",
-                    "url": "https://www.zillow.com/homes/309-3RD-AVE-SE_rb/41284735_zpid/",
-                    "title": "309 3rd Ave SE, Winchester, TN 37398 | Zillow"
+                    "url": "https://www.zillow.com/homes/305-E-24th-St-.num.17K-New-York,-NY-10010_rb/",
+                    "title": "",
                 }
-            ]
+            ],
+        },
+        {"type": "keyDown", "target": "main", "key": "Meta"},
+        {"type": "keyDown", "target": "main", "key": "f"},
+        {"type": "keyUp", "key": "Meta", "target": "main"},
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                ["aria/county website"],
+                [
+                    "div.data-view-container > div > div > div > ul > li:nth-of-type(9) a"
+                ],
+                [
+                    "pierce/div.data-view-container > div > div > div > ul > li:nth-of-type(9) a"
+                ],
+                ["text/county website"],
+            ],
+            "offsetY": 12.671875,
+            "offsetX": 83.7265625,
         },
         {
-            "type": "keyUp",
-            "key": "Enter",
-            "target": "main"
-        }
-    ]
+            "type": "click",
+            "target": "https://a836-pts-access.nyc.gov/care/Search/Disclaimer.aspx?FromUrl=../search/commonsearch.aspx?mode=address",
+            "selectors": [
+                ["aria/Agree"],
+                ["#btAgree"],
+                ["pierce/#btAgree"],
+                ["text/Agree"],
+            ],
+            "offsetY": 18,
+            "offsetX": 30.65625,
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "https://a836-pts-access.nyc.gov/care/search/commonsearch.aspx?mode=address",
+                    "title": "",
+                }
+            ],
+        },
+    ],
 }
-

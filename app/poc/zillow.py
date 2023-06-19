@@ -52,7 +52,7 @@ if __name__ == "__main__":
     encoding = detect_encoding(address)
     data_frame = pd.read_csv(address, encoding=encoding, sep="\t")
     column = data_frame["Address"].to_list()
-    column = column[:10]
+    column = column[:1]
 
     while column:
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:

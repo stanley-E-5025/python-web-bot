@@ -1,15 +1,11 @@
-import sys, logging, time, os, random
+import sys
+import logging
+import time
+import os
+import random
 from pathlib import Path
 import platform
-
-
-tenant_directory, root_dir = (
-    Path(__file__).resolve().parent.parent,
-    Path(__file__).resolve().parent.parent.parent,
-)
-sys.path.insert(0, str(root_dir))
-sys.path.append(str(tenant_directory))
-
+from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -23,9 +19,52 @@ from selenium_stealth import stealth
 from selenium.webdriver.common.keys import Keys
 from utils import generate_user_agent
 
+tenant_directory, root_dir = (
+    Path(__file__).resolve().parent.parent,
+    Path(__file__).resolve().parent.parent.parent,
+)
+
+sys.path.insert(0, str(root_dir))
+sys.path.append(str(tenant_directory))
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+class WebDriverFactory:
+    def __init__(self, user_agent, download_dir):
+        self.user_agent = user_agent
+        self.download_dir = download_dir
+
+    def get_driver(self):
+        chrome_options = Options()
+        chrome_options.add_argument(f"user-agent={self.user_agent}")
+        chrome_options.add_experimental_option(
+            "prefs", {"download.default_directory": self.download_dir}
+        )
+
+        executable_path = self._get_executable_path()
+        service = Service(executable_path=executable_path)
+
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        stealth(
+            driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+        )
+        return driver
+
+    def _get_executable_path(self):
+        if platform.system() == "Windows":
+            return f"{root_dir}/chromedriver_win32/chromedriver.exe"
+        elif platform.system() == "Darwin":
+            return f"{root_dir}/chromedriver_mac64/chromedriver"
+        else:
+            return f"{root_dir}/chromedriver_linux64/chromedriver"
 
 
 class ScraperClient:
@@ -35,6 +74,14 @@ class ScraperClient:
         self.case = case
         self.data = data
         self.bot_detected = False
+        self.user_agent = generate_user_agent()
+        self.download_dir = self._prepare_download_directory()
+
+    def _prepare_download_directory(self):
+        today = datetime.today().strftime("%Y-%m-%d")
+        download_dir = f"{root_dir}/downloads/{today}"
+        os.makedirs(download_dir, exist_ok=True)
+        return download_dir
 
     def handle_key_event(self, driver, key: str, action: str):
         if action == "keyDown":
@@ -44,7 +91,6 @@ class ScraperClient:
 
     def wait_for_element(self, driver, selector, by, retries=3):
         attempt = 0
-
         while attempt < retries:
             try:
                 element = WebDriverWait(driver, 10).until(
@@ -65,91 +111,40 @@ class ScraperClient:
         logger.info(f"Failed to find element {selector} after {retries} attempts.")
         return None
 
+    def handle_captcha(self, driver):
+        for i in range(5):
+            try:
+                captcha_element = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "px-captcha"))
+                )
+                ActionChains(driver).click_and_hold(captcha_element).perform()
+                time.sleep(random.randint(1, 13))
+                ActionChains(driver).release().perform()
+            except Exception as e:
+                logger.error(
+                    "Attempt %s: Could not solve the captcha. Error: %s", i + 1, e
+                )
+                if i == 4:
+                    self.bot_detected = True
+
     def extract_blob(self) -> dict:
-        chrome_options = Options()
-        executable_path = ""
-        user_agent = generate_user_agent()
-        chrome_options.add_argument(f"user-agent={user_agent}")
-
-        if platform.system() == "Windows":
-            executable_path = f"{root_dir}/chromedriver_win32/chromedriver.exe"
-        elif platform.system() == "Darwin":
-            executable_path = f"{root_dir}chromedriver_mac64/chromedriver"
-        else:
-            executable_path = f"{root_dir}chromedriver_linux64/chromedriver"
-
-        service = Service(executable_path=executable_path)
-
-        today = datetime.today().strftime("%Y-%m-%d")
-        download_dir = f"{root_dir}/downloads/{today}"
-        os.makedirs(download_dir, exist_ok=True)
-        chrome_options.add_experimental_option(
-            "prefs",
-            {"download.default_directory": download_dir},
-        )
-
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        stealth(
-            driver,
-            languages=["en-US", "en"],
-            vendor="Google Inc.",
-            platform="Win32",
-            webgl_vendor="Intel Inc.",
-            renderer="Intel Iris OpenGL Engine",
-            fix_hairline=True,
-        )
+        driver_factory = WebDriverFactory(self.user_agent, self.download_dir)
+        driver = driver_factory.get_driver()
         driver.get(self.url)
         driver.set_window_size(
             self.steps["steps"][0]["width"], self.steps["steps"][0]["height"]
         )
-
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "body"))
         )
 
-        current_url = driver.current_url
-
-        while "captchaPerimeter" in current_url:
-            self.bot_detected = True
-            for selector_group in [
-                ["#px-captcha"],
-            ]:
-                for selector in selector_group:
-                    if "aria" in selector or "text" in selector or "xpath" in selector:
-                        by = By.XPATH
-                    else:
-                        by = By.CSS_SELECTOR
-
-                    element = self.wait_for_element(driver, selector, by=by)
-                    if element:
-                        break
-                if element:
-                    break
-
-            # Hold a click on the captcha element
-            if element:
-                actions = ActionChains(driver)
-                actions.move_to_element_with_offset(element, 137, 24)
-                actions.click_and_hold().perform()
-
-                # Wait until the URL changes
-                WebDriverWait(driver, 60).until(EC.url_changes(current_url))
-                time.sleep(3)
-
-                actions.release().perform()
-
-            current_url = driver.current_url
-
-        if "captchaPerimeter" in current_url:
-            return {
-                "bot_detected": self.bot_detected,
-                "case": self.case,
-                "data": self.data,
-                "url": self.url,
-                "blob": None,
-            }
-
         for step in self.steps["steps"]:
+            page_html = driver.page_source
+            soup = BeautifulSoup(page_html, "html.parser")
+            if soup.find("div", {"class": "px-captcha-container"}):
+                logger.info("Captcha detected. Attempting to solve...")
+                self.handle_captcha(driver)
+
             if step["type"] == "click":
                 for selector_group in step["selectors"]:
                     for selector in selector_group:
@@ -173,15 +168,15 @@ class ScraperClient:
                             if element:
                                 element.clear()
                                 element.send_keys(self.data)
-
             elif step["type"] in ["keyDown", "keyUp"]:
                 self.handle_key_event(driver, step["key"], step["type"])
+            time.sleep(3)
 
         driver.quit()
 
         return {
             "bot_detected": self.bot_detected,
-            "download_dir": download_dir,
+            "download_dir": self.download_dir,
             "data": self.data,
             "case": self.case,
         }
