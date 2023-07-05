@@ -5,6 +5,8 @@ pandas
 numpy
 bs4
 selenium
+selenium_stealth
+django
 # Dev packages
 mypy==0.982
 black==22.10.0
